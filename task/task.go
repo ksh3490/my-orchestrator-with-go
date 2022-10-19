@@ -3,6 +3,7 @@ package task
 import (
 	"time"
 
+	"github.com/docker/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/google/uuid"
 )
@@ -39,6 +40,12 @@ type Config struct {
 	Disk          int64
 	Env           []string
 	RestartPolicy string
+}
+
+type Docker struct {
+	Client      *client.Client
+	Config      Config
+	ContainerId string
 }
 
 type State int
