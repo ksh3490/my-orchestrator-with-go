@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/google/uuid"
@@ -79,4 +80,23 @@ func (d *Docker) Run() DockerResult {
 		return DockerResult{Error: err}
 	}
 	io.Copy(os.Stdout, reader)
+
+	rp := container.RestartPolicy{
+		Name: d.Config.RestartPolicy,
+	}
+
+	r := container.Resources{
+		Memory: d.Config.Memory,
+	}
+
+	cc := container.Config{
+		Image: d.Config.Image,
+		Env:   d.Config.Env,
+	}
+
+	hc := container.HostConfig{
+		RestartPolicy:   rp,
+		Resources:       r,
+		PublishAllPorts: true,
+	}
 }
