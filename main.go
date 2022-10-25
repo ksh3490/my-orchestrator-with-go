@@ -97,3 +97,15 @@ func createContainer() (*task.Docker, *task.DockerResult) {
 		"Container %s is running with config %v\n", result.ContainerId, c)
 	return &d, &result
 }
+
+func stopContainer(d *task.Docker) *task.DockerResult {
+	result := d.Stop()
+	if result.Error != nil {
+		fmt.Printf("%v\n", result.Error)
+		return nil
+	}
+
+	fmt.Printf(
+		"Container %s has been stopped and removed\n", result.ContainerId)
+	return &result
+}
