@@ -74,6 +74,11 @@ const (
 
 func (d *Docker) Run() DockerResult {
 	ctx := context.Background()
+	// cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	// if err != nil {
+	// 	panic(err)
+	// }
+
 	reader, err := d.Client.ImagePull(
 		ctx, d.Config.Image, types.ImagePullOptions{})
 	if err != nil {
@@ -110,22 +115,20 @@ func (d *Docker) Run() DockerResult {
 		return DockerResult{Error: err}
 	}
 
-	err := d.Client.ContainerStart(
-		ctx, resp.ID, types.ContainerStartOptions{})
-	if err != nil {
+	if err := d.Client.ContainerStart(
+		ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
 		log.Printf("Error starting container %s: %v\n", resp.ID, err)
 		return DockerResult{Error: err}
 	}
 
-	d.Config.Runtime.ContainerID = resp.ID
+	d.ContainerId = resp.ID
 
-	out, err := cli.ContainerLogs(
+	out, err := d.Client.ContainerLogs(
 		ctx,
 		resp.ID,
 		types.ContainerLogsOptions{
-			ShowStdout: true, 
-			ShowStderr: true}
-	)
+			ShowStdout: true,
+			ShowStderr: true})
 	if err != nil {
 		log.Printf("Error getting logs for container %s: %v\n", resp.ID, err)
 		return DockerResult{Error: err}
@@ -135,28 +138,28 @@ func (d *Docker) Run() DockerResult {
 
 	return DockerResult{
 		ContainerId: resp.ID,
-		Action: "start",
-		Result: "success",
+		Action:      "start",
+		Result:      "success",
 	}
 }
 
 func (d *Docker) Stop() DockerResult {
 	log.Printf(
-		"Attempting to stop container %v", d.Config.Runtime.ContainerID)
-	err = cli.ContainerStop(ctx, d.Config.Runtime.ContainerID, nil)
-	if err != nil {
+		"Attempting to stop container %v", d.ContainerId)
+
+	if err := d.Client.ContainerStop(ctx, d.ContainerId, nil); err != nil {
 		panic(err)
 	}
 
-	removeOptions = types.ContainerRemoveOptions{
+	removeOptions := types.ContainerRemoveOptions{
 		RemoveVolumes: true,
-		RemoveLinks: false,
-		Force: false,
+		RemoveLinks:   false,
+		Force:         false,
 	}
 
-	err = cli.ContainerRemove(
+	err := d.Client.ContainerRemove(
 		ctx,
-		d.Config.Runtime.ContainerID,
+		d.ContainerId,
 		removeOptions,
 	)
 
