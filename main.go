@@ -7,6 +7,7 @@ import (
 	"my-orchestrator-with-go/worker"
 
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/docker/docker/client"
@@ -69,6 +70,17 @@ func main() {
 	}
 
 	fmt.Printf("node: %v\n", n)
+
+	fmt.Printf("create a test container\n")
+	dockerTask, createResult := createContainer()
+	if createResult.Error != nil {
+		fmt.Print(createResult.Error)
+		os.Exit(1)
+	}
+
+	time.Sleep(time.Second * 5)
+	fmt.Printf("stopping container %s\n", createResult.ContainerId)
+	_ = stopContainer(dockerTask)
 }
 
 func createContainer() (*task.Docker, *task.DockerResult) {
