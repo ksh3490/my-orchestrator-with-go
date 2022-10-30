@@ -17,6 +17,7 @@ import (
 
 type Task struct {
 	ID            uuid.UUID
+	ContainerID   string
 	Name          string
 	State         State
 	Image         string
