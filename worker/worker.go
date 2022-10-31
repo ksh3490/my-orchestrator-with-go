@@ -27,6 +27,10 @@ func (w *Worker) RunTask() {
 	fmt.Println("I will start or stop a task")
 }
 
+func (w *Worker) AddTask(t task.Task) {
+	w.Queue.Enqueue(t)
+}
+
 func (w *Worker) StartTask(t task.Task) task.DockerResult {
 	config := task.Config{
 		Name:  t.Name,
