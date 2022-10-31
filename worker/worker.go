@@ -7,6 +7,7 @@ import (
 
 	"my-orchestrator-with-go/task"
 
+	"github.com/docker/docker/client"
 	"github.com/golang-collections/collections/queue"
 	"github.com/google/uuid"
 )
@@ -31,10 +32,17 @@ func (w *Worker) StartTask() {
 }
 
 func (w *Worker) StopTask(t task.Task) task.DockerResult {
-	config := task.NewConfig(&t)
-	d := task.NewDocker(config)
+	config := task.Config{
+		Name:  t.Name,
+		Image: t.Image,
+	}
+	cli, _ := client.NewClientWithOpts(client.FromEnv)
 
-	result := d.Stop(t.ContainerID)
+	d := task.Docker{
+		Client: cli,
+		Config: config,
+	}
+	result := d.Stop()
 	if result.Error != nil {
 		log.Printf("Error stopping container %v: %v", t.ContainerID, result.Error)
 	}
