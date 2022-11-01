@@ -19,14 +19,6 @@ type Worker struct {
 	TaskCount int
 }
 
-var stateTransitionMap = map[task.State][]task.State{
-	task.Pending:   {task.Scheduled, task.Failed},
-	task.Scheduled: {task.Scheduled, task.Running, task.Failed},
-	task.Running:   {task.Running, task.Completed, task.Failed},
-	task.Completed: {},
-	task.Failed:    {},
-}
-
 func (w *Worker) CollectStats() {
 	fmt.Println("I will collect stats")
 }
