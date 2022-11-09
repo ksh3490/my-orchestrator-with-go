@@ -36,3 +36,9 @@ func (a *Api) StartTaskHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(201)
 	json.NewEncoder(w).Encode(te.Task)
 }
+
+func (a *Api) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	json.NewEncoder(w).Encode(a.Worker.GetTasks())
+}
