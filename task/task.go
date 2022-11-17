@@ -73,8 +73,7 @@ const (
 	Failed
 )
 
-func (d *Docker) Run() DockerResult {
-	ctx := context.Background()
+func (d *Docker) Run(ctx context.Context) DockerResult {
 
 	reader, err := d.Client.ImagePull(
 		ctx, d.Config.Image, types.ImagePullOptions{})
@@ -140,8 +139,7 @@ func (d *Docker) Run() DockerResult {
 	}
 }
 
-func (d *Docker) Stop() DockerResult {
-	ctx := context.Background()
+func (d *Docker) Stop(ctx context.Context) DockerResult {
 
 	log.Printf(
 		"Attempting to stop container %v", d.ContainerId)

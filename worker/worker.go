@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -31,6 +32,10 @@ func (w *Worker) RunTask() task.DockerResult {
 		return task.DockerResult{Error: nil}
 	}
 
+	w.TaskCount -= 1
+
+	ctx := context.Background()
+
 	taskQueued := t.(task.Task)
 
 	taskPersisted := w.Db[taskQueued.ID]
@@ -43,9 +48,9 @@ func (w *Worker) RunTask() task.DockerResult {
 	if task.ValidStateTransition(taskPersisted.State, taskQueued.State) {
 		switch taskQueued.State {
 		case task.Scheduled:
-			result = w.StartTask(taskQueued)
+			result = w.StartTask(taskQueued, ctx)
 		case task.Completed:
-			result = w.StopTask(taskQueued)
+			result = w.StopTask(taskQueued, ctx)
 		default:
 			result.Error = errors.New("we should not get here")
 		}
@@ -56,11 +61,19 @@ func (w *Worker) RunTask() task.DockerResult {
 	return result
 }
 
-func (w *Worker) AddTask(t task.Task) {
-	w.Queue.Enqueue(t)
+func (w *Worker) GetTasks() string {
+
+	result := "GetTasks Dummy Value"
+
+	return result
 }
 
-func (w *Worker) StartTask(t task.Task) task.DockerResult {
+func (w *Worker) AddTask(t task.Task) {
+	w.Queue.Enqueue(t)
+	w.TaskCount += 1
+}
+
+func (w *Worker) StartTask(t task.Task, ctx context.Context) task.DockerResult {
 	config := task.Config{
 		Name:  t.Name,
 		Image: t.Image,
@@ -74,7 +87,7 @@ func (w *Worker) StartTask(t task.Task) task.DockerResult {
 		ContainerId: t.ContainerID,
 	}
 
-	result := d.Run()
+	result := d.Run(ctx)
 	if result.Error != nil {
 		log.Printf("Error running task %v: %v\n", t.ID, result.Error)
 		t.State = task.Failed
@@ -89,7 +102,7 @@ func (w *Worker) StartTask(t task.Task) task.DockerResult {
 	return result
 }
 
-func (w *Worker) StopTask(t task.Task) task.DockerResult {
+func (w *Worker) StopTask(t task.Task, ctx context.Context) task.DockerResult {
 	config := task.Config{
 		Name:  t.Name,
 		Image: t.Image,
@@ -101,7 +114,7 @@ func (w *Worker) StopTask(t task.Task) task.DockerResult {
 		Config:      config,
 		ContainerId: t.ContainerID,
 	}
-	result := d.Stop()
+	result := d.Stop(ctx)
 	if result.Error != nil {
 		log.Printf("Error stopping container %v: %v", t.ContainerID, result.Error)
 	}
