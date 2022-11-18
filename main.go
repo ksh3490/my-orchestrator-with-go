@@ -25,50 +25,26 @@ func main() {
 		Image: "strm/helloworld-http",
 	}
 
-	t2 := task.Task{
-		ID:    uuid.New(),
-		Name:  "test-container-2",
-		State: task.Scheduled,
-		Image: "strm/helloworld-http",
-	}
-
 	// First time the worker will see the task
 	fmt.Println("starting task")
 	w.AddTask(t)
-	w.AddTask(t2)
-
-	fmt.Printf("task count: %v\n", w.TaskCount)
-
-	var result task.DockerResult
-
-	for w.TaskCount != 0 {
-		result = w.RunTask()
-		if result.Error != nil {
-			panic(result.Error)
-		}
+	result := w.RunTask()
+	if result.Error != nil {
+		panic(result.Error)
 	}
 
 	t.ContainerID = result.ContainerId
 
 	fmt.Printf("task %s is running in container %s\n", t.ID, t.ContainerID)
-	fmt.Printf("task: %v\n", w.Db)
 	fmt.Println("Sleepy Time")
 	time.Sleep(time.Second * 10)
 
 	fmt.Printf("stopping task %s\n", t.ID)
 	t.State = task.Completed
-	t2.State = task.Completed
-
 	w.AddTask(t)
-	w.AddTask(t2)
-
-	fmt.Printf("task count: %v\n", w.TaskCount)
-
-	for w.TaskCount != 0 {
-		result = w.RunTask()
-		if result.Error != nil {
-			panic(result.Error)
-		}
+	result = w.RunTask()
+	if result.Error != nil {
+		panic(result.Error)
 	}
 }
 
