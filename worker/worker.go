@@ -56,6 +56,13 @@ func (w *Worker) RunTask() task.DockerResult {
 	return result
 }
 
+func (w *Worker) GetTasks() string {
+
+	result := "GetTasks Dummy Value"
+
+	return result
+}
+
 func (w *Worker) AddTask(t task.Task) {
 	w.Queue.Enqueue(t)
 }
