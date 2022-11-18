@@ -41,14 +41,17 @@ func main() {
 
 	var result task.DockerResult
 
-	for w.TaskCount != 0 {
-		result = w.RunTask()
-		if result.Error != nil {
-			panic(result.Error)
-		}
+	result = w.RunTask()
+	if result.Error != nil {
+		panic(result.Error)
 	}
-
 	t.ContainerID = result.ContainerId
+
+	result = w.RunTask()
+	if result.Error != nil {
+		panic(result.Error)
+	}
+	t2.ContainerID = result.ContainerId
 
 	fmt.Printf("task %s is running in container %s\n", t.ID, t.ContainerID)
 	fmt.Printf("task: %v\n", w.Db)

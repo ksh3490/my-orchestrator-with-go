@@ -31,6 +31,8 @@ func (w *Worker) RunTask() task.DockerResult {
 		return task.DockerResult{Error: nil}
 	}
 
+	w.TaskCount -= 1
+
 	taskQueued := t.(task.Task)
 
 	taskPersisted := w.Db[taskQueued.ID]
@@ -65,6 +67,7 @@ func (w *Worker) GetTasks() string {
 
 func (w *Worker) AddTask(t task.Task) {
 	w.Queue.Enqueue(t)
+	w.TaskCount += 1
 }
 
 func (w *Worker) StartTask(t task.Task) task.DockerResult {
