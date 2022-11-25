@@ -54,7 +54,10 @@ func main() {
 	t2.ContainerID = result.ContainerId
 
 	fmt.Printf("task %s is running in container %s\n", t.ID, t.ContainerID)
-	fmt.Printf("task: %v\n", w.Db)
+	fmt.Printf("task2 %s is running in container %s\n", t2.ID, t2.ContainerID)
+	fmt.Printf("worker DB: %v\n", w.Db)
+
+	fmt.Printf("all tasks in DB: %v\n", w.GetTasks())
 
 	fmt.Println("Sleepy Time")
 	time.Sleep(time.Second * 10)
@@ -69,12 +72,17 @@ func main() {
 
 	fmt.Printf("task count: %v\n", w.TaskCount)
 
-	for w.TaskCount != 0 {
-		result = w.RunTask()
-		if result.Error != nil {
-			panic(result.Error)
-		}
+	result = w.RunTask()
+	if result.Error != nil {
+		panic(result.Error)
 	}
+
+	result = w.RunTask()
+	if result.Error != nil {
+		panic(result.Error)
+	}
+
+	fmt.Printf("task DB: %v\n", w.Db)
 }
 
 // func main() {
