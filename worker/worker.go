@@ -31,8 +31,6 @@ func (w *Worker) RunTask() task.DockerResult {
 		return task.DockerResult{Error: nil}
 	}
 
-	w.TaskCount -= 1
-
 	taskQueued := t.(task.Task)
 
 	taskPersisted := w.Db[taskQueued.ID]
@@ -46,8 +44,10 @@ func (w *Worker) RunTask() task.DockerResult {
 		switch taskQueued.State {
 		case task.Scheduled:
 			result = w.StartTask(taskQueued)
+			w.TaskCount += 1
 		case task.Completed:
 			result = w.StopTask(taskQueued)
+			w.TaskCount -= 1
 		default:
 			result.Error = errors.New("we should not get here")
 		}
@@ -58,16 +58,18 @@ func (w *Worker) RunTask() task.DockerResult {
 	return result
 }
 
-func (w *Worker) GetTasks() string {
+func (w *Worker) GetTasks() []task.Task {
 
-	result := "GetTasks Dummy Value"
+	result := make([]task.Task, 0, len(w.Db))
+	for _, value := range w.Db {
+		result = append(result, *value)
+	}
 
 	return result
 }
 
 func (w *Worker) AddTask(t task.Task) {
 	w.Queue.Enqueue(t)
-	w.TaskCount += 1
 }
 
 func (w *Worker) StartTask(t task.Task) task.DockerResult {
