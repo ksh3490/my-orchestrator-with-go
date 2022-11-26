@@ -8,6 +8,7 @@ import (
 
 	"my-orchestrator-with-go/task"
 
+	linux "github.com/c9s/goprocinfo/linux"
 	"github.com/docker/docker/client"
 	"github.com/golang-collections/collections/queue"
 	"github.com/google/uuid"
@@ -18,6 +19,13 @@ type Worker struct {
 	Queue     queue.Queue
 	Db        map[uuid.UUID]*task.Task
 	TaskCount int
+}
+
+type Stats struct {
+	MemStats  *linux.MemInfo
+	DiskStats *linux.Disk
+	CpuStats  *linux.CPUStat
+	LoadStats *linux.LoadAvg
 }
 
 func (w *Worker) CollectStats() {
