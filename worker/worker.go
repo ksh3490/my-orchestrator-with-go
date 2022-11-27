@@ -32,6 +32,22 @@ func (w *Worker) CollectStats() {
 	fmt.Println("I will collect stats")
 }
 
+func (s *Stats) MemTotalKb() uint64 {
+	return s.MemStats.MemTotal
+}
+
+func (s *Stats) MemAvailableKb() uint64 {
+	return s.MemStats.MemAvailable
+}
+
+func (s *Stats) MemUsedKb() uint64 {
+	return s.MemStats.MemTotal - s.MemStats.MemAvailable
+}
+
+func (s *Stats) MemUsedPercent() uint64 {
+	return s.MemStats.MemAvailable / s.MemStats.MemTotal
+}
+
 func (w *Worker) RunTask() task.DockerResult {
 	t := w.Queue.Dequeue()
 	if t == nil {
