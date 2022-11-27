@@ -32,6 +32,15 @@ func (w *Worker) CollectStats() {
 	fmt.Println("I will collect stats")
 }
 
+func GetStats() *Stats {
+	return &Stats{
+		MemStats:  GetMemoryInfro(),
+		DiskStats: GetDiskInfo(),
+		CpuStats:  GetCpuStats(),
+		LoadStats: GetLoadAvg(),
+	}
+}
+
 func (s *Stats) MemTotalKb() uint64 {
 	return s.MemStats.MemTotal
 }
