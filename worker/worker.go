@@ -48,6 +48,18 @@ func (s *Stats) MemUsedPercent() uint64 {
 	return s.MemStats.MemAvailable / s.MemStats.MemTotal
 }
 
+func (s *Stats) DiskTotal() uint64 {
+	return s.DiskStats.All
+}
+
+func (s *Stats) DiskFree() uint64 {
+	return s.DiskStats.Free
+}
+
+func (s *Stats) DiskUsed() uint64 {
+	return s.DiskStats.Used
+}
+
 func (w *Worker) RunTask() task.DockerResult {
 	t := w.Queue.Dequeue()
 	if t == nil {
