@@ -4,9 +4,8 @@ import (
 	"log"
 	"my-orchestrator-with-go/task"
 	"my-orchestrator-with-go/worker"
-	"net"
 	"os"
-	"strings"
+	"strconv"
 	"time"
 
 	"fmt"
@@ -16,20 +15,19 @@ import (
 )
 
 func main() {
-	hostname, _ := os.Hostname()
-	host, _ := net.LookupHost(hostname)
-	hostIp := strings.Join(host, "")
-	port := 5555
+	host := os.Getenv("MY_HOST")
+	port, _ := strconv.Atoi(os.Getenv("MY_PORT"))
 
-	fmt.Println("Starting Worker")
+	fmt.Printf("Starting Worker in %s:%d\n", host, port)
 
 	w := worker.Worker{
 		Queue: *queue.New(),
 		Db:    make(map[uuid.UUID]*task.Task),
 	}
-	api := worker.Api{Address: hostIp, Port: port, Worker: &w}
+	api := worker.Api{Address: host, Port: port, Worker: &w}
 
 	go runTasks(&w)
+	go w.CollectStats()
 	api.Start()
 }
 
