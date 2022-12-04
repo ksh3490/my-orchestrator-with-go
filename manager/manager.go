@@ -1,7 +1,9 @@
 package manager
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 
 	"my-orchestrator-with-go/task"
 
@@ -11,8 +13,8 @@ import (
 
 type Manager struct {
 	Pending       queue.Queue
-	TaskDb        map[string][]*task.Task
-	EventDb       map[string][]*task.TaskEvent
+	TaskDb        map[uuid.UUID]*task.Task
+	EventDb       map[uuid.UUID]*task.TaskEvent
 	Workers       []string
 	LastWorker    int
 	WorkerTaskMap map[string][]uuid.UUID
@@ -37,5 +39,25 @@ func (m *Manager) UpdateTasks() {
 }
 
 func (m *Manager) SendWork() {
-	fmt.Println("I will send work to workers")
+	if m.Pending.Len() > 0 {
+		w := m.SelectWorker()
+
+		e := m.Pending.Dequeue()
+		te := e.(task.TaskEvent)
+		t := te.Task
+		log.Printf("Pulled %v off pending queue", t)
+
+		m.EventDb[te.ID] = &te
+		m.WorkerTaskMap[w] = append(m.WorkerTaskMap[w], te.Task.ID)
+		m.TaskWorkerMap[t.ID] = w
+
+		t.State = task.Scheduled
+		m.TaskDb[t.ID] = &t
+
+		data, err := json.Marshal(te)
+		if err != nil {
+			log.Printf("Unable to marshal task object: %v", t)
+		}
+	}
+
 }
