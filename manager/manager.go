@@ -1,11 +1,14 @@
 package manager
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 
 	"my-orchestrator-with-go/task"
+	"my-orchestrator-with-go/worker"
 
 	"github.com/golang-collections/collections/queue"
 	"github.com/google/uuid"
@@ -58,6 +61,37 @@ func (m *Manager) SendWork() {
 		if err != nil {
 			log.Printf("Unable to marshal task object: %v", t)
 		}
-	}
 
+		url := fmt.Sprintf("http://%s/tasks", w)
+		resp, err := http.Post(url, "application/json", bytes.NewBuffer(data))
+		if err != nil {
+			log.Printf("Error connecting to %v: %v", w, err)
+			m.Pending.Enqueue(t)
+			return
+		}
+
+		d := json.NewDecoder(resp.Body)
+		if resp.StatusCode != http.StatusCreated {
+			e := worker.ErrResponse{}
+			err := d.Decode(&e)
+			if err != nil {
+				fmt.Printf("Error decoding response: %s\n", err.Error())
+				return
+			}
+
+			log.Printf("Response error (%d): %s", e.HTTPStatusCode, e.Message)
+			return
+		}
+
+		t = task.Task{}
+		err = d.Decode(&t)
+		if err != nil {
+			fmt.Printf("Error decoding response: %s\n", err.Error())
+			return
+		}
+
+		log.Printf("%#v\n", t)
+	} else {
+		log.Println("No work in the queue")
+	}
 }
