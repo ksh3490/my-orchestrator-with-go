@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"my-orchestrator-with-go/manager"
 	"my-orchestrator-with-go/task"
 	"my-orchestrator-with-go/worker"
 	"os"
@@ -24,11 +25,29 @@ func main() {
 		Queue: *queue.New(),
 		Db:    make(map[uuid.UUID]*task.Task),
 	}
+	workers := []string{fmt.Sprintf("%s:%d", host, port)}
+	m := manager.New(workers)
 	api := worker.Api{Address: host, Port: port, Worker: &w}
+
+	for i := 0; i < 3; i++ {
+		t := task.Task{
+			ID: uuid.New(),
+			Name: fmt.Sprintf("test-container-%d", i),
+			State: task.Scheduled,
+			Image: "strm/helloworld-http",
+		}
+		te := task.TaskEvent{
+			ID: uuid.New(),
+			State: task.Running,
+			Task: t,
+		}
+		m.AddTask(te)
+		m.SendWork()
+	}
 
 	go runTasks(&w)
 	go w.CollectStats()
-	api.Start()
+	go api.Start()
 }
 
 func runTasks(w *worker.Worker) {
